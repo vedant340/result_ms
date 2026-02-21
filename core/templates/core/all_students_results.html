@@ -1,0 +1,106 @@
+{% extends 'core/base.html' %}
+{% block title %}All Results — EduNova{% endblock %}
+{% block page_title %}All Student Reports{% endblock %}
+{% block nav_all_results %}active{% endblock %}
+
+{% block content %}
+<div class="page-hero">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
+        <div>
+            <h1>Academic Reports</h1>
+            <p>Comprehensive overview of all student performance and results.</p>
+        </div>
+        <form method="GET" style="display:flex;gap:12px;align-items:center;">
+            <select name="dept" class="form-control" style="width:200px;" onchange="this.form.submit()">
+                <option value="">All Departments</option>
+                {% for dept in departments %}
+                <option value="{{ dept.id }}" {% if dept_filter == dept.id|stringformat:"s" %}selected{% endif %}>{{ dept.name }}</option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Roll No</th>
+                    <th>Department</th>
+                    <th>Semester</th>
+                    <th>Results</th>
+                    <th>CGPA</th>
+                    <th>Percentage</th>
+                    <th>Performance</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in student_data %}
+                <tr style="animation:fadeInUp 0.3s ease {{ forloop.counter0 }}50ms both;">
+                    <td>
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            <div style="width:38px;height:38px;border-radius:10px;
+                                background:linear-gradient(135deg,hsl({{ forloop.counter|add:180 }}deg,65%,55%),hsl({{ forloop.counter|add:250 }}deg,65%,50%));
+                                display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:15px;">
+                                {{ item.student.user.get_full_name|first|default:item.student.user.username|first|upper }}
+                            </div>
+                            <div>
+                                <div style="font-weight:500;font-size:14px;">{{ item.student.user.get_full_name|default:item.student.user.username }}</div>
+                                <div style="font-size:11px;color:var(--text-muted);">{{ item.student.user.email|default:"—" }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="font-family:monospace;color:var(--primary-light);font-size:13px;">{{ item.student.roll_number }}</td>
+                    <td style="font-size:13px;">{{ item.student.department.name|default:"—" }}</td>
+                    <td><span class="badge" style="background:rgba(59,130,246,0.2);color:#60A5FA;">Sem {{ item.student.semester }}</span></td>
+                    <td style="font-weight:600;font-size:14px;color:var(--text);">{{ item.result_count }}</td>
+                    <td>
+                        <span style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;
+                            color:{% if item.cgpa >= 8 %}#10B981{% elif item.cgpa >= 6 %}var(--primary-light){% elif item.cgpa >= 4 %}#F59E0B{% else %}#EF4444{% endif %}">
+                            {{ item.cgpa }}
+                        </span>
+                    </td>
+                    <td style="font-weight:600;font-size:14px;">
+                        <span style="color:{% if item.percentage >= 75 %}#10B981{% elif item.percentage >= 50 %}var(--primary-light){% elif item.percentage >= 40 %}#F59E0B{% else %}#EF4444{% endif %}">
+                            {{ item.percentage }}%
+                        </span>
+                    </td>
+                    <td style="min-width:100px;">
+                        <div class="progress-bar">
+                            <div class="progress-fill" data-width="{{ item.percentage }}" style="width:0%;
+                                background:{% if item.percentage >= 75 %}linear-gradient(90deg,#10B981,#34D399){% elif item.percentage >= 50 %}linear-gradient(90deg,var(--primary),var(--primary-light)){% else %}linear-gradient(90deg,#EF4444,#FCA5A5){% endif %}">
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <a href="{% url 'student_result_detail' item.student.id %}" class="btn btn-sm btn-outline">
+                            <i class="fas fa-eye"></i> View
+                        </a>
+                    </td>
+                </tr>
+                <td>
+                    <div style="display:flex;gap:6px;">
+                        <a href="{% url 'student_result_detail' item.student.id %}" class="btn btn-sm btn-outline">
+                            <i class="fas fa-eye"></i> View
+                        </a>
+                        <a href="{% url 'download_result_pdf' item.student.id %}" class="btn btn-sm btn-danger"
+                        title="Download PDF">
+                            <i class="fas fa-file-pdf"></i>
+                        </a>
+                    </div>
+                </td>
+                {% empty %}
+                <tr>
+                    <td colspan="9" style="text-align:center;padding:60px;color:var(--text-muted);">
+                        No student results found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,640 @@
+{% extends 'core/base.html' %}
+{% block title %}Analytics — EduNova{% endblock %}
+{% block page_title %}Performance Analytics{% endblock %}
+{% block nav_analytics %}active{% endblock %}
+{% block nav_admin_analytics %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+  .chart-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      transition: all 0.35s cubic-bezier(0.4,0,0.2,1);
+      animation: fadeInUp 0.5s ease both;
+  }
+  .chart-card:hover {
+      border-color: rgba(108,59,245,0.45);
+      box-shadow: 0 12px 48px rgba(108,59,245,0.18);
+      transform: translateY(-4px);
+  }
+  .chart-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+  }
+  .chart-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+  }
+  .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+  }
+  .charts-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-bottom: 24px;
+  }
+  .chart-wrapper {
+      position: relative;
+      height: 280px;
+  }
+  .chart-wrapper-sm {
+      position: relative;
+      height: 220px;
+  }
+  .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+  }
+  .kpi-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      transition: all 0.3s;
+      animation: fadeInUp 0.5s ease both;
+  }
+  .kpi-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 32px rgba(108,59,245,0.18);
+      border-color: rgba(108,59,245,0.4);
+  }
+  .kpi-icon {
+      width: 48px; height: 48px;
+      border-radius: 13px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+  }
+  .kpi-val {
+      font-family: 'Syne', sans-serif;
+      font-size: 26px;
+      font-weight: 800;
+      line-height: 1;
+  }
+  .kpi-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+  }
+  /* Pass rate bar */
+  .pass-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      transition: background 0.2s;
+  }
+  .pass-row:last-child { border-bottom: none; }
+  .pass-row:hover { background: rgba(108,59,245,0.05); border-radius: 10px; padding-left: 10px; }
+  .pass-bar-bg {
+      flex: 1;
+      height: 8px;
+      background: var(--bg3);
+      border-radius: 4px;
+      overflow: hidden;
+  }
+  .pass-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
+  }
+  /* Top students table */
+  .student-rank {
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 13px;
+  }
+  .rank-1 { background: linear-gradient(135deg, #F59E0B, #FCD34D); color: #78350F; }
+  .rank-2 { background: linear-gradient(135deg, #9CA3AF, #D1D5DB); color: #1F2937; }
+  .rank-3 { background: linear-gradient(135deg, #D97706, #F59E0B); color: #451A03; }
+  .rank-other { background: var(--bg3); color: var(--text-muted); }
+
+  @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+  }
+  @media (max-width: 900px) {
+      .charts-grid, .charts-grid-3 { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Page Hero -->
+<div class="page-hero" style="margin-bottom:28px;animation:fadeInUp 0.5s ease;">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+        <div>
+            <h1>📊 Performance Analytics</h1>
+            <p>Deep dive into student performance, grade distributions, and academic trends.</p>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+            <span style="font-size:12px;color:var(--text-muted);">Data refreshes on every visit</span>
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--accent2);box-shadow:0 0 8px var(--accent2);animation:pulse 2s infinite;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="kpi-grid">
+    <div class="kpi-card" style="animation-delay:0s;">
+        <div class="kpi-icon" style="background:rgba(108,59,245,0.2);color:var(--primary-light);"><i class="fas fa-users"></i></div>
+        <div>
+            <div class="kpi-val" style="color:var(--primary-light);">{{ stats.total_students }}</div>
+            <div class="kpi-label">Students</div>
+        </div>
+    </div>
+    <div class="kpi-card" style="animation-delay:0.07s;">
+        <div class="kpi-icon" style="background:rgba(16,185,129,0.2);color:#10B981;"><i class="fas fa-percent"></i></div>
+        <div>
+            <div class="kpi-val" style="color:#10B981; font-size: 21px;">{{ stats.pass_rate }}%</div>
+            <div class="kpi-label ">Pass Rate</div>
+        </div>
+    </div>
+    <div class="kpi-card" style="animation-delay:0.14s;">
+        <div class="kpi-icon" style="background:rgba(245,158,11,0.2);color:#F59E0B;"><i class="fas fa-star"></i></div>
+        <div>
+            <div class="kpi-val" style="color:#F59E0B;">{{ stats.avg_cgpa }}</div>
+            <div class="kpi-label">Avg CGPA</div>
+        </div>
+    </div>
+    <div class="kpi-card" style="animation-delay:0.21s;">
+        <div class="kpi-icon" style="background:rgba(59,130,246,0.2);color:#60A5FA;"><i class="fas fa-chart-line"></i></div>
+        <div>
+            <div class="kpi-val" style="color:#60A5FA; font-size: 21px;">{{ stats.avg_marks }}</div>
+            <div class="kpi-label ">Avg Marks</div>
+        </div>
+    </div>
+    <div class="kpi-card" style="animation-delay:0.28s;">
+        <div class="kpi-icon" style="background:rgba(16,185,129,0.2);color:#34D399;"><i class="fas fa-arrow-up"></i></div>
+        <div>
+            <div class="kpi-val" style="color:#34D399;">{{ stats.highest_marks }}</div>
+            <div class="kpi-label">Highest</div>
+        </div>
+    </div>
+    <div class="kpi-card" style="animation-delay:0.35s;">
+        <div class="kpi-icon" style="background:rgba(239,68,68,0.2);color:#FCA5A5;"><i class="fas fa-arrow-down"></i></div>
+        <div>
+            <div class="kpi-val" style="color:#FCA5A5;">{{ stats.lowest_marks }}</div>
+            <div class="kpi-label">Lowest</div>
+        </div>
+    </div>
+    <div class="kpi-card" style="animation-delay:0.42s;">
+        <div class="kpi-icon" style="background:rgba(236,72,153,0.2);color:#EC4899;"><i class="fas fa-clipboard-list"></i></div>
+        <div>
+            <div class="kpi-val" style="color:#EC4899;">{{ stats.total_results }}</div>
+            <div class="kpi-label">Results</div>
+        </div>
+    </div>
+</div>
+
+<!-- Row 1: Grade Pie + Pass/Fail Doughnut + Semester Line -->
+<div class="charts-grid-3" style="animation-delay:0.1s;">
+
+    <!-- Grade Distribution Pie -->
+    <div class="chart-card" style="animation-delay:0.1s;">
+        <div class="chart-title"><i class="fas fa-chart-pie" style="color:var(--primary-light)"></i> Grade Distribution</div>
+        <div class="chart-subtitle">How marks map to letter grades</div>
+        <div class="chart-wrapper-sm">
+            <canvas id="gradePieChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Pass vs Fail Doughnut -->
+    <div class="chart-card" style="animation-delay:0.18s;">
+        <div class="chart-title"><i class="fas fa-circle-half-stroke" style="color:#10B981"></i> Pass / Fail / Absent</div>
+        <div class="chart-subtitle">Overall outcome breakdown</div>
+        <div class="chart-wrapper-sm">
+            <canvas id="passFailChart"></canvas>
+        </div>
+        <!-- Legend -->
+        <div style="display:flex;justify-content:center;gap:20px;margin-top:12px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted);">
+                <div style="width:10px;height:10px;border-radius:3px;background:#10B981;"></div> Pass ({{ pass_count }})
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted);">
+                <div style="width:10px;height:10px;border-radius:3px;background:#EF4444;"></div> Fail ({{ fail_count }})
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted);">
+                <div style="width:10px;height:10px;border-radius:3px;background:#6B7280;"></div> Absent ({{ ab_count }})
+            </div>
+        </div>
+    </div>
+
+    <!-- Semester Trend Line -->
+    <div class="chart-card" style="animation-delay:0.26s;">
+        <div class="chart-title"><i class="fas fa-wave-square" style="color:#F59E0B"></i> Semester-wise Avg</div>
+        <div class="chart-subtitle">Average marks trend across semesters</div>
+        <div class="chart-wrapper-sm">
+            <canvas id="semLineChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Row 2: Subject Avg Bar + Marks Distribution -->
+<div class="charts-grid" style="animation-delay:0.2s;">
+
+    <!-- Subject Average Bar -->
+    <div class="chart-card" style="animation-delay:0.2s;">
+        <div class="chart-title"><i class="fas fa-bar-chart" style="color:#60A5FA"></i> Subject-wise Average Marks</div>
+        <div class="chart-subtitle">Mean performance per subject</div>
+        <div class="chart-wrapper">
+            <canvas id="subjectBarChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Marks Distribution Histogram -->
+    <div class="chart-card" style="animation-delay:0.28s;">
+        <div class="chart-title"><i class="fas fa-chart-column" style="color:#A78BFA"></i> Marks Distribution</div>
+        <div class="chart-subtitle">Number of students in each marks range</div>
+        <div class="chart-wrapper">
+            <canvas id="marksHistChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Row 3: CGPA Histogram + Pass Rate per Subject -->
+<div class="charts-grid" style="animation-delay:0.3s;">
+
+    <!-- CGPA Distribution -->
+    <div class="chart-card" style="animation-delay:0.3s;">
+        <div class="chart-title"><i class="fas fa-graduation-cap" style="color:#34D399"></i> CGPA Distribution</div>
+        <div class="chart-subtitle">How many students fall in each CGPA band</div>
+        <div class="chart-wrapper">
+            <canvas id="cgpaBarChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Pass Rate per Subject (horizontal bars) -->
+    <div class="chart-card" style="animation-delay:0.38s;">
+        <div class="chart-title"><i class="fas fa-tasks" style="color:#EC4899"></i> Subject Pass Rate</div>
+        <div class="chart-subtitle">Percentage of students passing each subject</div>
+        {% if subj_pass_data %}
+        <div style="display:flex;flex-direction:column;gap:2px;max-height:280px;overflow-y:auto;">
+            {% for s in subj_pass_data %}
+            <div class="pass-row">
+                <div style="width:52px;font-family:monospace;font-size:11px;color:var(--primary-light);flex-shrink:0;">{{ s.name }}</div>
+                <div class="pass-bar-bg">
+                    <div class="pass-bar-fill"
+                         data-width="{{ s.pass_rate }}"
+                         style="width:0%;
+                         background:{% if s.pass_rate >= 75 %}linear-gradient(90deg,#10B981,#34D399){% elif s.pass_rate >= 50 %}linear-gradient(90deg,#6C3BF5,#8B5CF6){% else %}linear-gradient(90deg,#EF4444,#FCA5A5){% endif %};">
+                    </div>
+                </div>
+                <div style="font-size:12px;font-weight:700;min-width:40px;text-align:right;
+                    color:{% if s.pass_rate >= 75 %}#34D399{% elif s.pass_rate >= 50 %}#A78BFA{% else %}#FCA5A5{% endif %};">
+                    {{ s.pass_rate }}%
+                </div>
+                <div style="font-size:11px;color:var(--text-muted);min-width:30px;text-align:right;">{{ s.total }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align:center;padding:40px;color:var(--text-muted);">No subject data yet.</div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Row 4: Top Students Leaderboard (full width) -->
+<div class="chart-card" style="animation-delay:0.4s;">
+    <div class="chart-title"><i class="fas fa-trophy" style="color:#F59E0B"></i> Top Performing Students</div>
+    <div class="chart-subtitle">Ranked by CGPA — top 10 across your subjects</div>
+    {% if top_students %}
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Student</th>
+                    <th>Roll No</th>
+                    <th>CGPA</th>
+                    <th>Performance</th>
+                    <th>Rating</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in top_students %}
+                <tr style="animation:fadeInUp 0.4s ease {{ forloop.counter0 }}50ms both;">
+                    <td>
+                        <div class="student-rank {% if forloop.counter == 1 %}rank-1{% elif forloop.counter == 2 %}rank-2{% elif forloop.counter == 3 %}rank-3{% else %}rank-other{% endif %}">
+                            {{ forloop.counter }}
+                        </div>
+                    </td>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <div style="width:34px;height:34px;border-radius:9px;
+                                background:linear-gradient(135deg,
+                                hsl({{ forloop.counter|add:100 }}deg,70%,55%),
+                                hsl({{ forloop.counter|add:180 }}deg,70%,50%));
+                                display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:14px;">
+                                {{ s.name|first|upper }}
+                            </div>
+                            <span style="font-weight:500;font-size:14px;">{{ s.name }}</span>
+                        </div>
+                    </td>
+                    <td style="font-family:monospace;color:var(--primary-light);font-size:13px;">{{ s.roll }}</td>
+                    <td>
+                        <span style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;
+                            color:{% if s.cgpa >= 8 %}#10B981{% elif s.cgpa >= 6 %}#A78BFA{% elif s.cgpa >= 4 %}#F59E0B{% else %}#EF4444{% endif %};">
+                            {{ s.cgpa }}
+                        </span>
+                        <span style="font-size:11px;color:var(--text-muted);">/ 10</span>
+                    </td>
+                    <td style="min-width:120px;">
+                        <div class="progress-bar">
+                            <div class="progress-fill" data-width="{{ s.cgpa|floatformat:0 }}0"
+                                 style="width:0%;
+                                 background:{% if s.cgpa >= 8 %}linear-gradient(90deg,#10B981,#34D399){% elif s.cgpa >= 6 %}linear-gradient(90deg,#6C3BF5,#8B5CF6){% else %}linear-gradient(90deg,#F59E0B,#FCD34D){% endif %};">
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge {% if s.cgpa >= 8 %}badge-Aplus{% elif s.cgpa >= 6 %}badge-Bplus{% elif s.cgpa >= 4 %}badge-P{% else %}badge-F{% endif %}">
+                            {% if s.cgpa >= 9 %}Outstanding{% elif s.cgpa >= 8 %}Excellent{% elif s.cgpa >= 7 %}Very Good{% elif s.cgpa >= 6 %}Good{% elif s.cgpa >= 4 %}Pass{% else %}At Risk{% endif %}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="text-align:center;padding:40px;color:var(--text-muted);">No student CGPA data available yet.</div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+// ─── Theme-aware colors ───────────────────────────────────────────────────────
+const C = {
+    purple:  'rgba(108,59,245,',
+    violet:  'rgba(139,92,246,',
+    amber:   'rgba(245,158,11,',
+    green:   'rgba(16,185,129,',
+    red:     'rgba(239,68,68,',
+    blue:    'rgba(59,130,246,',
+    pink:    'rgba(236,72,153,',
+    cyan:    'rgba(34,211,238,',
+    gray:    'rgba(107,114,128,',
+};
+const alpha = (base, a) => base + a + ')';
+const text     = getComputedStyle(document.body).getPropertyValue('--text').trim() || '#E8E8F0';
+const textMuted= getComputedStyle(document.body).getPropertyValue('--text-muted').trim() || '#6B6B80';
+const border   = 'rgba(108,59,245,0.15)';
+
+// Shared Chart.js defaults
+Chart.defaults.color = textMuted;
+Chart.defaults.borderColor = border;
+Chart.defaults.font.family = "'DM Sans', sans-serif";
+
+const tooltipPlugin = {
+    backgroundColor: 'rgba(22,22,31,0.95)',
+    borderColor: 'rgba(108,59,245,0.4)',
+    borderWidth: 1,
+    padding: 12,
+    titleColor: '#E8E8F0',
+    bodyColor: '#9090A8',
+    cornerRadius: 12,
+    titleFont: { family: "'Syne', sans-serif", weight: '700', size: 13 },
+    bodyFont:  { size: 12 },
+};
+
+// ─── 1. Grade Pie ─────────────────────────────────────────────────────────────
+const gradeLabels = {{ grade_labels|safe }};
+const gradeData   = {{ grade_data|safe }};
+const gradeColors = [
+    alpha(C.amber, 0.9), alpha(C.purple, 0.9), alpha(C.blue, 0.9),
+    alpha(C.green, 0.9), alpha(C.cyan,   0.85), alpha(C.gray, 0.7),
+    alpha(C.gray,  0.5), alpha(C.red,    0.9),  alpha(C.gray, 0.4),
+];
+new Chart(document.getElementById('gradePieChart'), {
+    type: 'pie',
+    data: {
+        labels: gradeLabels,
+        datasets: [{ data: gradeData, backgroundColor: gradeColors, borderColor: 'rgba(0,0,0,0.2)', borderWidth: 2, hoverOffset: 8 }],
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'bottom', labels: { padding: 12, boxWidth: 12, font: { size: 11 } } },
+            tooltip: { callbacks: {
+                label: ctx => ` ${ctx.label}: ${ctx.parsed} students (${((ctx.parsed/gradeData.reduce((a,b)=>a+b,0))*100).toFixed(1)}%)`
+            }, ...tooltipPlugin },
+        },
+    },
+});
+
+// ─── 2. Pass / Fail Doughnut ─────────────────────────────────────────────────
+new Chart(document.getElementById('passFailChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Pass', 'Fail', 'Absent'],
+        datasets: [{
+            data: [{{ pass_count }}, {{ fail_count }}, {{ ab_count }}],
+            backgroundColor: [alpha(C.green,0.85), alpha(C.red,0.85), alpha(C.gray,0.6)],
+            borderColor: ['#10B981', '#EF4444', '#6B7280'],
+            borderWidth: 2,
+            hoverOffset: 10,
+            cutout: '68%',
+        }],
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: { ...tooltipPlugin, callbacks: {
+                label: ctx => ` ${ctx.label}: ${ctx.parsed}`
+            }},
+        },
+    },
+});
+
+// ─── 3. Semester Trend Line ───────────────────────────────────────────────────
+const semLabels = {{ sem_labels|safe }};
+const semAvgs   = {{ sem_avgs|safe }};
+new Chart(document.getElementById('semLineChart'), {
+    type: 'line',
+    data: {
+        labels: semLabels,
+        datasets: [{
+            label: 'Avg Marks',
+            data: semAvgs,
+            borderColor: alpha(C.amber, 1),
+            backgroundColor: alpha(C.amber, 0.1),
+            pointBackgroundColor: alpha(C.amber, 1),
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 6,
+            pointHoverRadius: 9,
+            tension: 0.4,
+            fill: true,
+            borderWidth: 3,
+        }],
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { ...tooltipPlugin } },
+        scales: {
+            x: { grid: { color: border }, ticks: { color: textMuted } },
+            y: { min: 0, max: 100, grid: { color: border }, ticks: { color: textMuted } },
+        },
+    },
+});
+
+// ─── 4. Subject Average Bar ───────────────────────────────────────────────────
+const subjLabels = {{ subj_labels|safe }};
+const subjAvgs   = {{ subj_avgs|safe }};
+const subjFull   = {{ subj_full|safe }};
+new Chart(document.getElementById('subjectBarChart'), {
+    type: 'bar',
+    data: {
+        labels: subjLabels,
+        datasets: [{
+            label: 'Average Marks',
+            data: subjAvgs,
+            backgroundColor: subjAvgs.map(v =>
+                v >= 75 ? alpha(C.green,0.75) :
+                v >= 50 ? alpha(C.purple,0.75) :
+                          alpha(C.red,0.65)
+            ),
+            borderColor: subjAvgs.map(v =>
+                v >= 75 ? '#10B981' : v >= 50 ? '#8B5CF6' : '#EF4444'
+            ),
+            borderWidth: 2,
+            borderRadius: 8,
+            borderSkipped: false,
+            hoverBackgroundColor: alpha(C.violet, 0.9),
+        }],
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: { ...tooltipPlugin, callbacks: {
+                title: (ctx) => subjFull[ctx[0].dataIndex],
+                label: (ctx) => ` Avg: ${ctx.parsed.y} / 100`,
+            }},
+        },
+        scales: {
+            x: { grid: { display: false }, ticks: { color: textMuted, font: { size: 11 } } },
+            y: { min: 0, max: 100, grid: { color: border }, ticks: { color: textMuted } },
+        },
+    },
+});
+
+// ─── 5. Marks Distribution Histogram ─────────────────────────────────────────
+const marksLabels = {{ marks_labels|safe }};
+const marksData   = {{ marks_data|safe }};
+const marksGrad   = ['rgba(239,68,68,0.75)', 'rgba(245,158,11,0.75)', 'rgba(59,130,246,0.7)',
+                     'rgba(108,59,245,0.75)', 'rgba(16,185,129,0.75)', 'rgba(52,211,153,0.85)'];
+new Chart(document.getElementById('marksHistChart'), {
+    type: 'bar',
+    data: {
+        labels: marksLabels,
+        datasets: [{
+            label: 'Students',
+            data: marksData,
+            backgroundColor: marksGrad,
+            borderColor: marksGrad.map(c => c.replace('0.7', '1').replace('0.75','1').replace('0.85','1')),
+            borderWidth: 2,
+            borderRadius: 10,
+            borderSkipped: false,
+        }],
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: { ...tooltipPlugin, callbacks: {
+                label: ctx => ` ${ctx.parsed.y} students scored ${ctx.label}`
+            }},
+        },
+        scales: {
+            x: { grid: { display: false }, ticks: { color: textMuted } },
+            y: { beginAtZero: true, grid: { color: border }, ticks: { color: textMuted, stepSize: 1 } },
+        },
+    },
+});
+
+// ─── 6. CGPA Distribution Bar ────────────────────────────────────────────────
+const cgpaLabels = {{ cgpa_labels|safe }};
+const cgpaData   = {{ cgpa_data|safe }};
+new Chart(document.getElementById('cgpaBarChart'), {
+    type: 'bar',
+    data: {
+        labels: cgpaLabels,
+        datasets: [{
+            label: 'Students',
+            data: cgpaData,
+            backgroundColor: [
+                alpha(C.red,0.7), alpha(C.amber,0.7), alpha(C.blue,0.7),
+                alpha(C.purple,0.75), alpha(C.violet,0.75), alpha(C.green,0.75), alpha(C.green,0.9)
+            ],
+            borderColor: ['#EF4444','#F59E0B','#3B82F6','#6C3BF5','#8B5CF6','#10B981','#34D399'],
+            borderWidth: 2,
+            borderRadius: 10,
+            borderSkipped: false,
+        }],
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: { ...tooltipPlugin, callbacks: {
+                label: ctx => ` ${ctx.parsed.y} students with CGPA ${ctx.label}`
+            }},
+        },
+        scales: {
+            x: { grid: { display: false }, ticks: { color: textMuted } },
+            y: { beginAtZero: true, grid: { color: border }, ticks: { color: textMuted, stepSize: 1 } },
+        },
+    },
+});
+
+// ─── Animate progress bars ────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+    // Pass rate bars
+    document.querySelectorAll('.pass-bar-fill').forEach(el => {
+        const w = el.dataset.width || 0;
+        setTimeout(() => { el.style.width = w + '%'; }, 400);
+    });
+    // Leaderboard bars
+    document.querySelectorAll('.progress-fill').forEach(el => {
+        const w = Math.min(el.dataset.width || 0, 100);
+        setTimeout(() => { el.style.width = w + '%'; }, 500);
+    });
+});
+
+// ─── Pulse animation for live dot ─────────────────────────────────────────────
+const style = document.createElement('style');
+style.textContent = `@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.4)} }`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

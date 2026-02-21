@@ -1,0 +1,221 @@
+{% extends 'core/base.html' %}
+{% block title %}Admin Dashboard — EduNova{% endblock %}
+{% block page_title %}Admin Dashboard{% endblock %}
+{% block nav_admin_dash %}active{% endblock %}
+
+{% block content %}
+<div class="page-hero" style="animation: fadeInUp 0.5s ease">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+        <div>
+            <h1>👋 Welcome back, {{ request.user.get_full_name|default:request.user.username }}</h1>
+            <p>Here's what's happening across your institution today.</p>
+        </div>
+        <div style="display:flex;gap:12px;">
+            <a href="{% url 'add_user' %}" class="btn btn-primary"><i class="fas fa-user-plus"></i> Add User</a>
+            <a href="{% url 'manage_results' %}" class="btn btn-outline"><i class="fas fa-plus"></i> Add Result</a>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Grid -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon purple"><i class="fas fa-user-graduate"></i></div>
+        <div>
+            <div class="stat-value">{{ stats.total_students }}</div>
+            <div class="stat-label">Total Students</div>
+        </div>
+    </div>
+    <div class="stat-card animate-delay-1">
+        <div class="stat-icon amber"><i class="fas fa-chalkboard-teacher"></i></div>
+        <div>
+            <div class="stat-value">{{ stats.total_teachers }}</div>
+            <div class="stat-label">Teachers</div>
+        </div>
+    </div>
+    <div class="stat-card animate-delay-2">
+        <div class="stat-icon blue"><i class="fas fa-book-open"></i></div>
+        <div>
+            <div class="stat-value">{{ stats.total_subjects }}</div>
+            <div class="stat-label">Subjects</div>
+        </div>
+    </div>
+    <div class="stat-card animate-delay-3">
+        <div class="stat-icon pink"><i class="fas fa-building"></i></div>
+        <div>
+            <div class="stat-value">{{ stats.total_departments }}</div>
+            <div class="stat-label">Departments</div>
+        </div>
+    </div>
+    <div class="stat-card animate-delay-4">
+        <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+        <div>
+            <div class="stat-value">{{ stats.pass_count }}</div>
+            <div class="stat-label">Passed</div>
+        </div>
+    </div>
+    <div class="stat-card" style="animation-delay:0.5s">
+        <div class="stat-icon red"><i class="fas fa-times-circle"></i></div>
+        <div>
+            <div class="stat-value">{{ stats.fail_count }}</div>
+            <div class="stat-label">Failed</div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Grid -->
+<div class="grid-2" style="margin-bottom:24px;">
+    <!-- Recent Results -->
+    <div class="card" style="animation:fadeInUp 0.6s ease 0.2s both;">
+        <div class="card-header">
+            <span class="card-title"><i class="fas fa-clipboard-list" style="color:var(--primary-light);margin-right:8px"></i>Recent Results</span>
+            <a href="{% url 'manage_results' %}" class="btn btn-sm btn-outline">View All</a>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Subject</th>
+                        <th>Marks</th>
+                        <th>Grade</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in recent_results %}
+                    <tr>
+                        <td>
+                            <div style="display:flex;align-items:center;gap:10px;">
+                                <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:white;flex-shrink:0;">
+                                    {{ result.student.user.get_full_name|first|default:result.student.user.username|first|upper }}
+                                </div>
+                                <div>
+                                    <div style="font-size:13px;font-weight:500;">{{ result.student.user.get_full_name|default:result.student.user.username }}</div>
+                                    <div style="font-size:11px;color:var(--text-muted);">{{ result.student.roll_number }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="color:var(--text-dim);font-size:13px;">{{ result.subject.name|truncatechars:20 }}</td>
+                        <td style="font-weight:600;">
+                            {% if result.marks_obtained %}{{ result.marks_obtained }}/{{ result.subject.max_marks }}{% else %}<span style="color:var(--text-muted)">—</span>{% endif %}
+                        </td>
+                        <td>
+                            <span class="badge badge-{{ result.grade|default:'Ab'|slugify }}">{{ result.grade|default:'N/A' }}</span>
+                        </td>
+                        <td>
+                            {% if result.marks_obtained %}
+                                {% if result.marks_obtained >= result.subject.passing_marks %}
+                                    <span class="badge badge-pass">Pass</span>
+                                {% else %}
+                                    <span class="badge badge-fail">Fail</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="badge badge-pending">Pending</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:24px;">No results yet</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Department Overview -->
+    <div style="display:flex;flex-direction:column;gap:24px;">
+        <div class="card" style="animation:fadeInUp 0.6s ease 0.3s both;">
+            <div class="card-header">
+                <span class="card-title"><i class="fas fa-building" style="color:var(--accent);margin-right:8px"></i>Departments</span>
+                <a href="{% url 'manage_departments' %}" class="btn btn-sm btn-outline">Manage</a>
+            </div>
+            {% for dept in departments %}
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <div style="width:8px;height:8px;border-radius:50%;background:var(--primary);"></div>
+                    <div>
+                        <div style="font-size:14px;font-weight:500;">{{ dept.name }}</div>
+                        <div style="font-size:11px;color:var(--text-muted);">{{ dept.code }}</div>
+                    </div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-size:14px;font-weight:600;color:var(--primary-light);">{{ dept.student_count }}</div>
+                    <div style="font-size:11px;color:var(--text-muted);">students</div>
+                </div>
+            </div>
+            {% empty %}
+            <p style="color:var(--text-muted);text-align:center;padding:20px;">No departments yet</p>
+            {% endfor %}
+        </div>
+
+        <!-- Announcements -->
+        <div class="card" style="animation:fadeInUp 0.6s ease 0.4s both;">
+            <div class="card-header">
+                <span class="card-title"><i class="fas fa-bullhorn" style="color:#EC4899;margin-right:8px"></i>Announcements</span>
+                <a href="{% url 'manage_announcements' %}" class="btn btn-sm btn-outline">Post</a>
+            </div>
+            {% for ann in announcements %}
+            <div style="padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+                <div style="font-size:14px;font-weight:500;margin-bottom:4px;">{{ ann.title }}</div>
+                <div style="font-size:12px;color:var(--text-muted);">{{ ann.content|truncatechars:80 }}</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">
+                    <i class="fas fa-clock"></i> {{ ann.created_at|timesince }} ago ·
+                    <span class="badge" style="background:rgba(108,59,245,0.2);color:var(--primary-light);font-size:10px;">{{ ann.target_role }}</span>
+                </div>
+            </div>
+            {% empty %}
+            <p style="color:var(--text-muted);text-align:center;padding:16px;font-size:13px;">No announcements</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Recent Students -->
+<div class="card" style="animation:fadeInUp 0.6s ease 0.5s both;">
+    <div class="card-header">
+        <span class="card-title"><i class="fas fa-users" style="color:var(--accent2);margin-right:8px"></i>Recently Added Students</span>
+        <a href="{% url 'manage_users' %}?role=student" class="btn btn-sm btn-outline">View All</a>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Roll No</th>
+                    <th>Department</th>
+                    <th>Semester</th>
+                    <th>Batch</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in recent_students %}
+                <tr>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,hsl({{ forloop.counter|add:100 }}deg,70%,60%),hsl({{ forloop.counter|add:200 }}deg,70%,50%));display:flex;align-items:center;justify-content:center;font-weight:700;color:white;">
+                                {{ s.user.get_full_name|first|default:s.user.username|first|upper }}
+                            </div>
+                            <div>
+                                <div style="font-weight:500;">{{ s.user.get_full_name|default:s.user.username }}</div>
+                                <div style="font-size:11px;color:var(--text-muted);">{{ s.user.email }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="font-family:monospace;color:var(--primary-light);">{{ s.roll_number }}</td>
+                    <td>{{ s.department.name|default:"—" }}</td>
+                    <td><span class="badge" style="background:rgba(59,130,246,0.2);color:#60A5FA;">Sem {{ s.semester }}</span></td>
+                    <td style="color:var(--text-muted);">{{ s.batch_year }}</td>
+                    <td>
+                        <a href="{% url 'student_result_detail' s.id %}" class="btn btn-sm btn-outline"><i class="fas fa-eye"></i></a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:24px;">No students yet</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

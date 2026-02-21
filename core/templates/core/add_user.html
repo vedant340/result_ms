@@ -1,0 +1,202 @@
+{% extends 'core/base.html' %}
+{% block title %}Add User — EduNova{% endblock %}
+{% block page_title %}Add New User{% endblock %}
+{% block nav_users %}active{% endblock %}
+
+{% block content %}
+<div class="page-hero">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
+        <div>
+            <h1>Add New User</h1>
+            <p>Create an admin, teacher, or student account with profile details.</p>
+        </div>
+        <a href="{% url 'manage_users' %}" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Back to Users</a>
+    </div>
+</div>
+
+<form method="POST">
+    {% csrf_token %}
+    <div class="grid-2" style="gap:24px;">
+        <!-- Basic Info -->
+        <div class="card" style="animation:fadeInUp 0.5s ease both;">
+            <div class="card-header">
+                <span class="card-title"><i class="fas fa-user" style="color:var(--primary-light);margin-right:8px"></i>Account Information</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">First Name</label>
+                <input type="text" name="first_name" class="form-control" placeholder="First name">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Last Name</label>
+                <input type="text" name="last_name" class="form-control" placeholder="Last name">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Username *</label>
+                <input type="text" name="username" class="form-control" placeholder="Unique username" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" name="email" class="form-control" placeholder="email@example.com">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Phone</label>
+                <input type="text" name="phone" class="form-control" placeholder="+91 XXXXX XXXXX">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password *</label>
+                <input type="password" name="password" class="form-control" required placeholder="Min. 6 characters">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Confirm Password *</label>
+                <input type="password" name="confirm_password" class="form-control" required placeholder="Repeat password">
+            </div>
+        </div>
+
+        <!-- Role & Profile -->
+        <div style="display:flex;flex-direction:column;gap:20px;">
+            <div class="card" style="animation:fadeInUp 0.5s ease 0.1s both;">
+                <div class="card-header">
+                    <span class="card-title"><i class="fas fa-shield-alt" style="color:var(--accent);margin-right:8px"></i>Role Selection</span>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;">
+                    <label style="cursor:pointer;">
+                        <input type="radio" name="role" value="admin" id="roleAdmin" style="display:none">
+                        <div class="role-card" data-role="admin" onclick="showRoleFields('admin')">
+                            <i class="fas fa-user-shield" style="font-size:28px;color:#EF4444;margin-bottom:8px;display:block"></i>
+                            <div style="font-weight:600;font-size:14px;">Admin</div>
+                            <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Full access</div>
+                        </div>
+                    </label>
+                    <label style="cursor:pointer;">
+                        <input type="radio" name="role" value="teacher" id="roleTeacher" style="display:none">
+                        <div class="role-card" data-role="teacher" onclick="showRoleFields('teacher')">
+                            <i class="fas fa-chalkboard-teacher" style="font-size:28px;color:#F59E0B;margin-bottom:8px;display:block"></i>
+                            <div style="font-weight:600;font-size:14px;">Teacher</div>
+                            <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Manage subjects</div>
+                        </div>
+                    </label>
+                    <label style="cursor:pointer;">
+                        <input type="radio" name="role" value="student" id="roleStudent" style="display:none" checked>
+                        <div class="role-card active" data-role="student" onclick="showRoleFields('student')">
+                            <i class="fas fa-user-graduate" style="font-size:28px;color:#10B981;margin-bottom:8px;display:block"></i>
+                            <div style="font-weight:600;font-size:14px;">Student</div>
+                            <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">View results</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Student Fields -->
+            <div class="card" id="studentFields" style="animation:fadeInUp 0.5s ease 0.2s both;">
+                <div class="card-header">
+                    <span class="card-title"><i class="fas fa-user-graduate" style="color:#10B981;margin-right:8px"></i>Student Details</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Roll Number *</label>
+                    <input type="text" name="roll_number" class="form-control" placeholder="e.g. CS2024001">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Enrollment Number *</label>
+                    <input type="text" name="enrollment_number" class="form-control" placeholder="e.g. EN2024CS001">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Department</label>
+                    <select name="department" class="form-control">
+                        <option value="">Select Department</option>
+                        {% for dept in departments %}
+                        <option value="{{ dept.id }}">{{ dept.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                    <div class="form-group">
+                        <label class="form-label">Semester</label>
+                        <input type="number" name="semester" class="form-control" min="1" max="8" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Batch Year</label>
+                        <input type="number" name="batch_year" class="form-control" value="2024">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Guardian Name</label>
+                    <input type="text" name="guardian_name" class="form-control" placeholder="Parent/Guardian name">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Date of Birth</label>
+                    <input type="date" name="date_of_birth" class="form-control">
+                </div>
+            </div>
+
+            <!-- Teacher Fields -->
+            <div class="card" id="teacherFields" style="display:none;animation:fadeInUp 0.5s ease 0.2s both;">
+                <div class="card-header">
+                    <span class="card-title"><i class="fas fa-chalkboard-teacher" style="color:#F59E0B;margin-right:8px"></i>Teacher Details</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Employee ID *</label>
+                    <input type="text" name="employee_id" class="form-control" placeholder="e.g. EMP2024001">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Department</label>
+                    <select name="teacher_department" class="form-control">
+                        <option value="">Select Department</option>
+                        {% for dept in departments %}
+                        <option value="{{ dept.id }}">{{ dept.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Qualification</label>
+                    <input type="text" name="qualification" class="form-control" placeholder="e.g. M.Tech, Ph.D">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Joining Date</label>
+                    <input type="date" name="joining_date" class="form-control">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:24px;">
+        <a href="{% url 'manage_users' %}" class="btn btn-outline">Cancel</a>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-user-plus"></i> Create User</button>
+    </div>
+</form>
+
+<style>
+.role-card {
+    padding: 18px 12px;
+    border-radius: 14px;
+    border: 2px solid var(--border);
+    background: var(--bg3);
+    text-align: center;
+    transition: all 0.25s;
+    user-select: none;
+}
+.role-card:hover {
+    border-color: rgba(108,59,245,0.4);
+    background: rgba(108,59,245,0.08);
+}
+.role-card.active {
+    border-color: var(--primary);
+    background: rgba(108,59,245,0.15);
+    box-shadow: 0 0 20px rgba(108,59,245,0.2);
+}
+</style>
+
+<script>
+function showRoleFields(role) {
+    document.querySelectorAll('.role-card').forEach(c => c.classList.remove('active'));
+    document.querySelector(`[data-role="${role}"]`).classList.add('active');
+
+    document.getElementById('studentFields').style.display = role === 'student' ? 'block' : 'none';
+    document.getElementById('teacherFields').style.display = role === 'teacher' ? 'block' : 'none';
+
+    const radios = {admin: 'roleAdmin', teacher: 'roleTeacher', student: 'roleStudent'};
+    document.getElementById(radios[role]).checked = true;
+}
+// Default show student
+showRoleFields('student');
+</script>
+{% endblock %}

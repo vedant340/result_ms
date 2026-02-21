@@ -1,0 +1,507 @@
+{% extends 'core/base.html' %}
+
+{% block auth_content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduNova — Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6C3BF5;
+            --primary-light: #8B5CF6;
+            --accent: #F59E0B;
+            --bg: #0A0A0F;
+            --bg2: #12121A;
+            --bg3: #1A1A27;
+            --card: #16161F;
+            --border: rgba(108,59,245,0.2);
+            --text: #E8E8F0;
+            --text-muted: #6B6B80;
+            --glow: rgba(108,59,245,0.4);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* Animated background */
+        .bg-blobs {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.25;
+            animation: blobFloat 8s ease-in-out infinite;
+        }
+        .blob-1 { width: 600px; height: 600px; background: var(--primary); top: -200px; left: -200px; animation-delay: 0s; }
+        .blob-2 { width: 400px; height: 400px; background: var(--accent); bottom: -150px; right: -100px; animation-delay: -3s; }
+        .blob-3 { width: 300px; height: 300px; background: #10B981; top: 50%; left: 60%; animation-delay: -6s; }
+
+        @keyframes blobFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -30px) scale(1.05); }
+            66% { transform: translate(-20px, 20px) scale(0.95); }
+        }
+
+        /* Grid pattern */
+        .grid-bg {
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(108,59,245,0.06) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(108,59,245,0.06) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+        }
+
+        .login-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            width: min(1000px, 95vw);
+            min-height: 580px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            overflow: hidden;
+            box-shadow: 0 40px 120px rgba(0,0,0,0.5), 0 0 80px rgba(108,59,245,0.15);
+            position: relative;
+            z-index: 1;
+            animation: loginEntrance 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+
+        @keyframes loginEntrance {
+            from { opacity: 0; transform: scale(0.9) translateY(40px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        /* Left Panel */
+        .login-left {
+            background: linear-gradient(145deg, rgba(108,59,245,0.3) 0%, rgba(245,158,11,0.15) 100%);
+            padding: 60px 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+        .login-left::before {
+            content: '';
+            position: absolute;
+            top: -100px; right: -100px;
+            width: 400px; height: 400px;
+            border-radius: 50%;
+            border: 1px solid rgba(108,59,245,0.2);
+            animation: rotate 20s linear infinite;
+        }
+        .login-left::after {
+            content: '';
+            position: absolute;
+            top: -50px; right: -50px;
+            width: 250px; height: 250px;
+            border-radius: 50%;
+            border: 1px solid rgba(245,158,11,0.15);
+            animation: rotate 15s linear infinite reverse;
+        }
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            position: relative;
+            z-index: 1;
+        }
+        .brand-icon {
+            width: 52px; height: 52px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 16px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px;
+            color: white;
+            box-shadow: 0 0 30px var(--glow);
+            animation: pulse-glow 3s ease-in-out infinite;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px var(--glow); }
+            50% { box-shadow: 0 0 50px var(--glow), 0 0 100px rgba(108,59,245,0.2); }
+        }
+        .brand h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 26px;
+            font-weight: 800;
+            background: linear-gradient(90deg, #fff, rgba(255,255,255,0.7));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .brand p {
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .left-content { position: relative; z-index: 1; }
+        .left-content h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: 36px;
+            font-weight: 800;
+            line-height: 1.2;
+            background: linear-gradient(135deg, white, rgba(255,255,255,0.7));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 16px;
+        }
+        .left-content p { color: rgba(255,255,255,0.5); font-size: 15px; line-height: 1.7; }
+
+        .features-list { margin-top: 36px; display: flex; flex-direction: column; gap: 14px; }
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            animation: fadeInUp 0.6s ease both;
+        }
+        .feature-icon {
+            width: 36px; height: 36px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        .feature-item p { font-size: 13px; color: rgba(255,255,255,0.6); }
+        .feature-item strong { color: rgba(255,255,255,0.9); font-size: 14px; }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Right Panel */
+        .login-right {
+            padding: 60px 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: var(--card);
+        }
+        .login-right h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+        .login-right p { color: var(--text-muted); font-size: 14px; margin-bottom: 36px; }
+
+        .role-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 28px;
+        }
+        .role-btn {
+            padding: 12px 8px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--bg3);
+            color: var(--text-muted);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.25s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+        .role-btn i { font-size: 20px; }
+        .role-btn:hover { border-color: var(--primary); color: var(--text); background: rgba(108,59,245,0.1); }
+        .role-btn.active {
+            border-color: var(--primary);
+            background: rgba(108,59,245,0.15);
+            color: var(--primary-light);
+            box-shadow: 0 0 20px rgba(108,59,245,0.2);
+        }
+
+        .form-group { margin-bottom: 18px; }
+        .form-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .input-wrap { position: relative; }
+        .input-wrap i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+        .form-control {
+            width: 100%;
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 13px 16px 13px 42px;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(108,59,245,0.15);
+            background: var(--bg2);
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+        .password-toggle:hover { color: var(--text); }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Syne', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 0.5px;
+        }
+        .btn-login::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        .btn-login:hover::before { left: 100%; }
+        .btn-login:hover {
+            box-shadow: 0 8px 32px var(--glow);
+            transform: translateY(-2px);
+        }
+
+        .demo-creds {
+            margin-top: 24px;
+            padding: 16px;
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        .demo-creds h4 { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+        .cred-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; color: var(--text-dim); }
+        .cred-row strong { color: var(--text); }
+        .cred-badge { padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 600; }
+        .cred-badge.admin { background: rgba(239,68,68,0.2); color: #EF4444; }
+        .cred-badge.teacher { background: rgba(245,158,11,0.2); color: #F59E0B; }
+        .cred-badge.student { background: rgba(16,185,129,0.2); color: #10B981; }
+
+        .errorlist { list-style: none; }
+        .errorlist li {
+            color: #FCA5A5;
+            font-size: 12px;
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        @media (max-width: 768px) {
+            .login-container { grid-template-columns: 1fr; }
+            .login-left { display: none; }
+            .login-right { padding: 40px 30px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+    <div class="grid-bg"></div>
+
+    <div class="login-container">
+        <!-- Left Panel -->
+        <div class="login-left">
+            <div class="brand">
+                <div class="brand-icon"><i class="fas fa-graduation-cap"></i></div>
+                <div>
+                    <h1>EduNova</h1>
+                    <p>Result Management System</p>
+                </div>
+            </div>
+
+            <div class="left-content">
+                <h2>Transforming Academic Excellence</h2>
+                <p>A next-generation SaaS platform for managing student results, grades, and academic performance — built for modern institutions.</p>
+                <div class="features-list">
+                    <div class="feature-item" style="animation-delay:0.2s">
+                        <div class="feature-icon" style="background:rgba(108,59,245,0.3);color:#A78BFA">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div>
+                            <strong>Real-time Analytics</strong>
+                            <p>Track CGPA, percentages & grade distributions</p>
+                        </div>
+                    </div>
+                    <div class="feature-item" style="animation-delay:0.4s">
+                        <div class="feature-icon" style="background:rgba(245,158,11,0.3);color:#F59E0B">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div>
+                            <strong>Role-Based Access</strong>
+                            <p>Admin, Teacher & Student portals</p>
+                        </div>
+                    </div>
+                    <div class="feature-item" style="animation-delay:0.6s">
+                        <div class="feature-icon" style="background:rgba(16,185,129,0.3);color:#10B981">
+                            <i class="fas fa-award"></i>
+                        </div>
+                        <div>
+                            <strong>Smart Grading</strong>
+                            <p>Auto grade calculation & SGPA/CGPA computation</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="font-size:12px;color:rgba(255,255,255,0.3);">© 2024 EduNova · SaaS B2B Platform</div>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="login-right">
+            <h2>Welcome Back 👋</h2>
+            <p>Sign in to access your personalized dashboard</p>
+
+            <div class="role-selector">
+                <div class="role-btn" onclick="setRole('admin')">
+                    <i class="fas fa-user-shield" style="color:#EF4444"></i>
+                    <span>Admin</span>
+                </div>
+                <div class="role-btn" onclick="setRole('teacher')">
+                    <i class="fas fa-chalkboard-teacher" style="color:#F59E0B"></i>
+                    <span>Teacher</span>
+                </div>
+                <div class="role-btn" onclick="setRole('student')">
+                    <i class="fas fa-user-graduate" style="color:#10B981"></i>
+                    <span>Student</span>
+                </div>
+            </div>
+
+            {% if form.non_field_errors %}
+            <div style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);border-radius:10px;padding:12px 16px;margin-bottom:18px;color:#FCA5A5;font-size:13px;display:flex;align-items:center;gap:8px;">
+                <i class="fas fa-exclamation-circle"></i>
+                Invalid username or password. Please try again.
+            </div>
+            {% endif %}
+
+            <form method="POST" action="{% url 'login' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-user"></i>
+                        <input type="text" name="username" class="form-control" placeholder="Enter your username" required autocomplete="off">
+                    </div>
+                    {% if form.username.errors %}
+                    <ul class="errorlist">{% for e in form.username.errors %}<li><i class="fas fa-exclamation-circle"></i>{{ e }}</li>{% endfor %}</ul>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" name="password" id="passwordInput" class="form-control" placeholder="Enter your password" required>
+                        <button type="button" class="password-toggle" onclick="togglePassword()">
+                            <i class="fas fa-eye" id="eyeIcon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-login">
+                    <i class="fas fa-sign-in-alt" style="margin-right:8px"></i> Sign In to EduNova
+                </button>
+            </form>
+
+            <div class="demo-creds">
+                <h4>🔑 Demo Credentials (run setup_demo first)</h4>
+                <div class="cred-row">
+                    <span><span class="cred-badge admin">Admin</span></span>
+                    <span><strong>admin</strong> / admin123</span>
+                </div>
+                <div class="cred-row">
+                    <span><span class="cred-badge teacher">Teacher</span></span>
+                    <span><strong>teacher1</strong> / teacher123</span>
+                </div>
+                <div class="cred-row">
+                    <span><span class="cred-badge student">Student</span></span>
+                    <span><strong>student1</strong> / student123</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function togglePassword() {
+            const input = document.getElementById('passwordInput');
+            const icon = document.getElementById('eyeIcon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fas fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fas fa-eye';
+            }
+        }
+        function setRole(role) {
+            document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+        }
+    </script>
+</body>
+</html>
+{% endblock %}

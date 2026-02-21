@@ -1,0 +1,81 @@
+{% extends 'core/base.html' %}
+{% block title %}Announcements — EduNova{% endblock %}
+{% block page_title %}Announcements{% endblock %}
+{% block nav_announce %}active{% endblock %}
+
+{% block content %}
+<div class="page-hero">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
+        <div>
+            <h1>Announcements</h1>
+            <p>Broadcast important notices to students and teachers.</p>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('addAnnModal')">
+            <i class="fas fa-bullhorn"></i> Post Announcement
+        </button>
+    </div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:16px;">
+    {% for ann in announcements %}
+    <div class="card" style="animation:fadeInUp 0.4s ease {{ forloop.counter0|add:0 }}00ms both;padding:20px 24px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;">
+            <div style="flex:1;">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+                    <div style="width:40px;height:40px;border-radius:10px;background:rgba(236,72,153,0.2);display:flex;align-items:center;justify-content:center;color:#EC4899;font-size:16px;">
+                        <i class="fas fa-bullhorn"></i>
+                    </div>
+                    <div>
+                        <h3 style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;">{{ ann.title }}</h3>
+                        <div style="font-size:12px;color:var(--text-muted);">
+                            By {{ ann.created_by.get_full_name|default:ann.created_by.username }} ·
+                            {{ ann.created_at|timesince }} ago ·
+                            <span class="badge" style="background:rgba(108,59,245,0.2);color:var(--primary-light);">{{ ann.target_role|capfirst }}</span>
+                        </div>
+                    </div>
+                </div>
+                <p style="color:var(--text-dim);font-size:14px;line-height:1.6;">{{ ann.content }}</p>
+            </div>
+            <a href="{% url 'delete_announcement' ann.id %}"
+               onclick="return confirm('Delete this announcement?')"
+               class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></a>
+        </div>
+    </div>
+    {% empty %}
+    <div style="text-align:center;padding:80px;background:var(--card);border:1px solid var(--border);border-radius:20px;">
+        <i class="fas fa-bullhorn" style="font-size:64px;color:var(--border);display:block;margin-bottom:20px"></i>
+        <h3 style="font-family:'Syne',sans-serif;font-size:22px;margin-bottom:10px;">No Announcements</h3>
+        <p style="color:var(--text-muted);margin-bottom:20px;">Post your first announcement for students and teachers.</p>
+        <button class="btn btn-primary" onclick="openModal('addAnnModal')"><i class="fas fa-bullhorn"></i> Post Now</button>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="modal-overlay" id="addAnnModal">
+    <div class="modal-box">
+        <div class="modal-title">
+            <span><i class="fas fa-bullhorn" style="color:#EC4899;margin-right:10px"></i>Post Announcement</span>
+            <span class="modal-close" onclick="closeModal('addAnnModal')"><i class="fas fa-times"></i></span>
+        </div>
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="form-label">Title *</label>
+                {{ form.title }}
+            </div>
+            <div class="form-group">
+                <label class="form-label">Message *</label>
+                {{ form.content }}
+            </div>
+            <div class="form-group">
+                <label class="form-label">Target Audience</label>
+                {{ form.target_role }}
+            </div>
+            <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:8px;">
+                <button type="button" class="btn btn-outline" onclick="closeModal('addAnnModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-bullhorn"></i> Post</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

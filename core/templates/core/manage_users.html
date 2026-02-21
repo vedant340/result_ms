@@ -1,0 +1,107 @@
+{% extends 'core/base.html' %}
+{% block title %}Manage Users — EduNova{% endblock %}
+{% block page_title %}User Management{% endblock %}
+{% block nav_users %}active{% endblock %}
+
+{% block content %}
+<div class="page-hero">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
+        <div>
+            <h1>User Management</h1>
+            <p>Manage admins, teachers, and students across the platform.</p>
+        </div>
+        <a href="{% url 'add_user' %}" class="btn btn-primary"><i class="fas fa-user-plus"></i> Add New User</a>
+    </div>
+</div>
+
+<!-- Filter Tabs -->
+<div style="display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap;">
+    <a href="{% url 'manage_users' %}" class="btn {% if not role_filter %}btn-primary{% else %}btn-outline{% endif %}">
+        <i class="fas fa-users"></i> All
+    </a>
+    <a href="{% url 'manage_users' %}?role=admin" class="btn {% if role_filter == 'admin' %}btn-primary{% else %}btn-outline{% endif %}">
+        <i class="fas fa-user-shield"></i> Admins
+    </a>
+    <a href="{% url 'manage_users' %}?role=teacher" class="btn {% if role_filter == 'teacher' %}btn-primary{% else %}btn-outline{% endif %}">
+        <i class="fas fa-chalkboard-teacher"></i> Teachers
+    </a>
+    <a href="{% url 'manage_users' %}?role=student" class="btn {% if role_filter == 'student' %}btn-primary{% else %}btn-outline{% endif %}">
+        <i class="fas fa-user-graduate"></i> Students
+    </a>
+</div>
+
+<div class="card">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Username</th>
+                    <th>Role</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Joined</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr style="animation:fadeInUp 0.4s ease {{ forloop.counter0|add:0 }}00ms both;">
+                    <td>
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            <div style="width:38px;height:38px;border-radius:11px;
+                                background:linear-gradient(135deg,
+                                hsl({{ forloop.counter|add:200 }}deg,70%,55%),
+                                hsl({{ forloop.counter|add:260 }}deg,70%,55%));
+                                display:flex;align-items:center;justify-content:center;
+                                font-weight:700;color:white;font-size:16px;flex-shrink:0;">
+                                {{ u.get_full_name|first|default:u.username|first|upper }}
+                            </div>
+                            <div>
+                                <div style="font-weight:500;font-size:14px;">{{ u.get_full_name|default:u.username }}</div>
+                                <div style="font-size:11px;color:var(--text-muted);">
+                                    {% if u.role == 'student' and u.student_profile %}
+                                        Roll: {{ u.student_profile.roll_number }}
+                                    {% elif u.role == 'teacher' and u.teacher_profile %}
+                                        ID: {{ u.teacher_profile.employee_id }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="font-family:monospace;color:var(--primary-light);">{{ u.username }}</td>
+                    <td><span class="role-badge {{ u.role }}">{{ u.role }}</span></td>
+                    <td style="color:var(--text-dim);font-size:13px;">{{ u.email|default:"—" }}</td>
+                    <td style="color:var(--text-dim);font-size:13px;">{{ u.phone|default:"—" }}</td>
+                    <td style="color:var(--text-muted);font-size:12px;">{{ u.created_at|date:"d M Y" }}</td>
+                    <td>
+                        <div style="display:flex;gap:8px;">
+                            {% if u.role == 'student' and u.student_profile %}
+                            <a href="{% url 'student_result_detail' u.student_profile.id %}" class="btn btn-sm btn-success" title="View Results">
+                                <i class="fas fa-chart-bar"></i>
+                            </a>
+                            {% endif %}
+                            {% if u != request.user %}
+                            <a href="{% url 'delete_user' u.id %}"
+                               class="btn btn-sm btn-danger"
+                               onclick="return confirm('Delete user {{ u.username }}? This cannot be undone.')"
+                               title="Delete User">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted);">
+                        <i class="fas fa-users" style="font-size:40px;display:block;margin-bottom:12px;color:var(--border)"></i>
+                        No users found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
