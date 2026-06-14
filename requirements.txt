@@ -1,6 +1,6 @@
 asgiref==3.11.1
 charset-normalizer==3.4.4
-Django==6.0.2
+Django==5.2.7
 gunicorn==25.1.0
 PyMySQL==1.1.1
 packaging==26.0
